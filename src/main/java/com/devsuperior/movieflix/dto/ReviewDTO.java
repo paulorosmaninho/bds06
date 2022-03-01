@@ -14,6 +14,7 @@ public class ReviewDTO implements Serializable {
 	@NotBlank(message = "O texto de avaliação é um campo obrigatório")
 	private String text;
 	private Long movieId;
+	private UserDTO user;
 
 	public ReviewDTO() {
 	}
@@ -28,6 +29,7 @@ public class ReviewDTO implements Serializable {
 		this.id = entity.getId();
 		this.text = entity.getText();
 		this.movieId = entity.getMovie().getId();
+		this.user = new UserDTO(entity.getUser());
 	}
 
 	public Long getId() {
@@ -54,4 +56,8 @@ public class ReviewDTO implements Serializable {
 		this.movieId = movieId;
 	}
 
+	public UserDTO getUser() {
+		return user;
+	}
+	
 }
