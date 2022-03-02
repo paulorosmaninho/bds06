@@ -1,5 +1,6 @@
 package com.devsuperior.movieflix.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.devsuperior.movieflix.dto.MovieDTO;
 import com.devsuperior.movieflix.dto.MovieDetailDTO;
 import com.devsuperior.movieflix.dto.MovieReviewDTO;
+import com.devsuperior.movieflix.dto.UserDTO;
 import com.devsuperior.movieflix.entities.Genre;
 import com.devsuperior.movieflix.entities.Movie;
 import com.devsuperior.movieflix.entities.Review;
@@ -27,25 +29,25 @@ public class MovieService {
 
 	@Autowired
 	GenreRepository genreRepository;
-	
+
 	@Autowired
 	ReviewRepository reviewRepository;
-	
+
 	public Page<MovieDTO> findAllPaged(Pageable pageable, Long genreId) {
 
 		Genre genre;
-		
-		if(genreId==0) {
-			
+
+		if (genreId == 0) {
+
 			genre = null;
-			
-		}else {
-			
+
+		} else {
+
 			genre = genreRepository.getOne(genreId);
 		}
-		
-		Page<Movie> pageMovie = movieRepository.find(pageable, genre);
 
+		Page<Movie> pageMovie = movieRepository.find(pageable, genre);
+		
 		Page<MovieDTO> pageMovieDTO = pageMovie.map(elementMovie -> new MovieDTO(elementMovie));
 
 		return pageMovieDTO;
@@ -62,12 +64,26 @@ public class MovieService {
 	}
 
 	public List<MovieReviewDTO> findReviewsByMovieId(Long movieId) {
-		
-		List<Review> listMovieReviewDTO = movieRepository.findReviewsByMovieId(movieId);
-		
-		
-		
+
+		Movie movie = movieRepository.getOne(movieId);
+
+		List<Review> listMovieReview = movieRepository.findReviewsByMovieId(movie);
+
+		List<MovieReviewDTO> listMovieReviewDTO = new ArrayList<>();
+
+		for (Review review : listMovieReview) {
+
+			MovieReviewDTO dto = new MovieReviewDTO();
+
+			dto.setId(review.getId());
+			dto.setText(review.getText());
+			dto.setMovieId(review.getMovie().getId());
+			dto.setUserDTO(new UserDTO(review.getUser()));
+
+			listMovieReviewDTO.add(dto);
+		}
+
 		return listMovieReviewDTO;
 	}
-	
+
 }

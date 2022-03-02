@@ -2,6 +2,8 @@ package com.devsuperior.movieflix.repositories;
 
 import java.util.List;
 
+import javax.persistence.FetchType;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,19 +15,25 @@ import com.devsuperior.movieflix.entities.Movie;
 import com.devsuperior.movieflix.entities.Review;
 
 @Repository
-public interface MovieRepository extends JpaRepository<Movie, Long>{
+public interface MovieRepository extends JpaRepository<Movie, Long> {
 
-	
-	@Query(value = "SELECT objMov FROM Movie objMov "
-			+ " INNER JOIN objMov.genre objGen "
-			+ " WHERE (:genre IS NULL OR :genre IN objGen) "
-			+ " ORDER BY objMov.title ASC")
+	//Aplicado FetchType.LAZY na entidade Movie para evitar
+	//a consulta desnecessária dos generos
+	@Query(value = "SELECT objMovie FROM Movie objMovie " 
+			+ " INNER JOIN objMovie.genre objGenre "
+			+ " WHERE (:genre IS NULL OR :genre IN objGenre) " 
+			+ " ORDER BY objMovie.title ASC")
 	Page<Movie> find(Pageable pageable, Genre genre);
 
-	@Query(value = "SELECT objReview.id, objReview.text, objReview.movie, objReview.user"
-			+ " FROM Review objReview "
-			+ " WHERE (objReview.movie.id = :movieId) "
-			+ " ORDER BY objReview.id ASC")
-	List<Review> findReviewsByMovieId(Long movieId);
 	
+	//Aplicado o JOIN FETCH para resolver o problema das N+1 Consultas
+	@Query(value = "SELECT objReview " 
+			+ " FROM Review objReview "
+			+ " JOIN FETCH objReview.user objUser" 
+			+ " JOIN FETCH objUser.roles objRoles" 
+			+ " JOIN FETCH objReview.movie objMovie" 
+			+ " WHERE (objReview.movie = :movie) "
+			+ " ORDER BY objReview.id ASC")
+	List<Review> findReviewsByMovieId(Movie movie);
+
 }
